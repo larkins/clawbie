@@ -29,9 +29,9 @@ DEFAULT_WS_URL = "ws://localhost:18789"
 DEFAULT_AGENT_ID = "main"
 DEFAULT_SESSION_KEY = "main"
 
-# Gateway token from openclaw.json
-# In production, this should be read from the config file
-GATEWAY_TOKEN = "421bf0cedd268f99c01f7d9e1580e234b823f932f03ac695"
+# Gateway token — MUST be read from openclaw.json config.
+# Do not hardcode tokens here; always use get_gateway_token() which reads from config.
+GATEWAY_TOKEN = ""  # No default — must come from openclaw.json
 
 
 def get_gateway_token() -> str:
@@ -39,9 +39,15 @@ def get_gateway_token() -> str:
     config_path = Path.home() / ".openclaw" / "openclaw.json"
     try:
         config = json.loads(config_path.read_text())
-        return config.get("gateway", {}).get("auth", {}).get("token", GATEWAY_TOKEN)
-    except Exception:
-        return GATEWAY_TOKEN
+        token = config.get("gateway", {}).get("auth", {}).get("token", "")
+        if not token:
+            raise ValueError("No gateway auth token found in openclaw.json")
+        return token
+    except Exception as e:
+        raise RuntimeError(
+            f"Could not read gateway token from {config_path}: {e}. "
+            "Set gateway.auth.token in openclaw.json"
+        )
 
 
 def authenticate(ws, token: str) -> bool:
