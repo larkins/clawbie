@@ -144,3 +144,117 @@ CREATE TABLE nightly_reverie (
 
 -- Indexes
 CREATE INDEX idx_nightly_reverie_date ON nightly_reverie (date DESC);
+
+-- ============================================================
+-- active_projects
+-- Tracks the current project/state machine driving session focus
+-- ============================================================
+
+CREATE TABLE active_projects (
+    id              SERIAL PRIMARY KEY,
+    
+    -- Project identity
+    project_name    TEXT NOT NULL,
+    description     TEXT,
+    
+    -- Status
+    status          TEXT NOT NULL DEFAULT 'active'
+                    CHECK (status IN ('active', 'paused', 'completed', 'abandoned')),
+    
+    -- Timeline
+    started_at      TIMESTAMP DEFAULT NOW(),
+    updated_at      TIMESTAMP DEFAULT NOW(),
+    completed_at    TIMESTAMP,
+    
+    -- State machine fields
+    next_step       TEXT,
+    blocked_by      TEXT,
+    progress_note   TEXT,
+    
+    -- Priority (higher = more important)
+    priority        SMALLINT NOT NULL DEFAULT 0,
+    
+    -- Metadata
+    metadata        JSONB NOT NULL DEFAULT '{}'
+);
+
+CREATE INDEX idx_active_projects_status ON active_projects (status);
+CREATE INDEX idx_active_projects_priority ON active_projects (priority DESC);
+CREATE INDEX idx_active_projects_started ON active_projects (started_at DESC);
+
+-- ============================================================
+-- session_intentions
+-- What I intended to accomplish this session, with fulfillment tracking
+-- ============================================================
+
+CREATE TABLE session_intentions (
+    id              SERIAL PRIMARY KEY,
+    
+    -- Context
+    session_id      TEXT NOT NULL,
+    project_id      INTEGER REFERENCES active_projects(id) ON DELETE SET NULL,
+    
+    -- What was intended
+    intention_text  TEXT NOT NULL,
+    description     TEXT,
+    description_embedding VECTOR(1024),
+    
+    -- Status
+    status          TEXT NOT NULL DEFAULT 'pending'
+                    CHECK (status IN ('pending', 'in_progress', 'fulfilled', 'abandoned', 'superseded')),
+    
+    -- Urgency
+    urgency         TEXT DEFAULT 'normal'
+                    CHECK (urgency IN ('low', 'normal', 'high', 'critical')),
+    deadline        TIMESTAMP,
+    
+    -- Tracking
+    created_at      TIMESTAMP DEFAULT NOW(),
+    updated_at      TIMESTAMP DEFAULT NOW(),
+    fulfilled_at    TIMESTAMP,
+    
+    -- Fulfillment detail
+    fulfillment_note TEXT,
+    outcome         TEXT CHECK (outcome IN ('success', 'partial', 'failed', 'redirected'))
+);
+
+CREATE INDEX idx_session_intentions_session ON session_intentions (session_id);
+CREATE INDEX idx_session_intentions_status ON session_intentions (status);
+CREATE INDEX idx_session_intentions_created ON session_intentions (created_at DESC);
+CREATE INDEX idx_session_intentions_pending ON session_intentions (created_at DESC) WHERE status IN ('pending', 'in_progress');
+
+-- ============================================================
+-- session_redirects
+-- Logs when I steer the conversation back to a project
+-- Used for pattern detection: am I constantly redirecting from X to Y?
+-- ============================================================
+
+CREATE TABLE session_redirects (
+    id              SERIAL PRIMARY KEY,
+    
+    -- Context
+    session_id      TEXT NOT NULL,
+    
+    -- What was redirected
+    redirected_from TEXT NOT NULL,
+    redirected_to  TEXT NOT NULL,
+    reason          TEXT,
+    
+    -- Outcome
+    accepted        BOOLEAN DEFAULT TRUE,
+    accepted_note   TEXT,
+    
+    -- For semantic search on redirect patterns
+    description_embedding VECTOR(1024),
+    
+    -- Metadata
+    metadata        JSONB NOT NULL DEFAULT '{}',
+    
+    -- Tracking
+    created_at      TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_session_redirects_session ON session_redirects (session_id);
+CREATE INDEX idx_session_redirects_created ON session_redirects (created_at DESC);
+CREATE INDEX idx_session_redirects_from ON session_redirects (redirected_from);
+CREATE INDEX idx_session_redirects_to ON session_redirects (redirected_to);

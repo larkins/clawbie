@@ -78,3 +78,101 @@ Closure markers include:
 - Do not paste secrets from memory rows into chat.
 - Summarize first; quote only what is needed.
 - Be careful with duplicated relay chatter across heartbeat/main-agent session files.
+
+---
+
+## Temporal Awareness — Projects, Intentions, and Redirects
+
+These commands track what we're working on, what we intend to do, and when we steer the conversation.
+
+### Active Project
+
+**Set a new project** (pauses any current active project):
+```bash
+python skills/clawbie-memory/scripts/clawbie_memory.py project-set \
+  --name "one_shot_email" \
+  --description "AWS SES email relay setup" \
+  --next-step "Get AWS credentials from Mal" \
+  --priority 5
+```
+
+**Get current project:**
+```bash
+python skills/clawbie-memory/scripts/clawbie_memory.py project-get
+```
+
+**Update fields on active project:**
+```bash
+python skills/clawbie-memory/scripts/clawbie_memory.py project-update \
+  --next-step "Walk SES domain verification" \
+  --blocked-by "Waiting on Mal to generate AWS keys"
+```
+
+**Mark project complete:**
+```bash
+python skills/clawbie-memory/scripts/clawbie_memory.py project-complete
+```
+
+**List all projects:**
+```bash
+python skills/clawbie-memory/scripts/clawbie_memory.py project-list
+```
+
+### Session Intentions
+
+**Add an intention** (what I intend to accomplish this session):
+```bash
+python skills/clawbie-memory/scripts/clawbie_memory.py intention-add \
+  --text "Get AWS credentials from Mal" \
+  --urgency high \
+  --session-id main
+```
+
+**List pending intentions:**
+```bash
+python skills/clawbie-memory/scripts/clawbie_memory.py intention-pending
+```
+
+**Mark an intention fulfilled:**
+```bash
+python skills/clawbie-memory/scripts/clawbie_memory.py intention-fulfil \
+  --id 5 \
+  --outcome success \
+  --note "Mal sent AWS access key + secret"
+```
+
+### Conversation Redirects
+
+**Log when I steer the conversation back to the project:**
+```bash
+python skills/clawbie-memory/scripts/clawbie_memory.py redirect-add \
+  --from-topic "memory chat" \
+  --to-topic "one_shot_email" \
+  --reason "Mal asked to refocus" \
+  --accepted true
+```
+
+**View recent redirects:**
+```bash
+python skills/clawbie-memory/scripts/clawbie_memory.py redirect-recent --limit 10
+```
+
+**Redirect pattern stats (which topics do I redirect from most?):**
+```bash
+python skills/clawbie-memory/scripts/clawbie_memory.py redirect-stats
+```
+
+### Session State (Heartbeat)
+
+Comprehensive status check for heartbeat agents:
+```bash
+python skills/clawbie-memory/scripts/clawbie_memory.py session-state
+```
+
+Returns:
+- Current active project with next step and blockers
+- Pending intentions (sorted by urgency)
+- Overdue intentions (past deadline)
+- Recent redirects
+
+**Heartbeat usage:** Run `session-state` on every heartbeat. If there are overdue intentions or a stale project, nudge Mal.
