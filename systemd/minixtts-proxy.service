@@ -1,0 +1,18 @@
+[Unit]
+Description=MiniMax TTS Proxy — OpenAI-compatible TTS endpoint backed by MiniMax
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=__REPO_ROOT__
+# Set your MiniMax API key in .env or here (not recommended for production)
+Environment="MINIMAX_API_KEY=YOUR_MINIMAX_API_KEY"
+# EnvironmentFile=__REPO_ROOT__/.env
+ExecStart=__REPO_ROOT__/.venv/bin/python minixtts_proxy/simple_proxy.py
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

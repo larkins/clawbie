@@ -1,0 +1,13 @@
+[Unit]
+Description=Clawbie OpenClaw chat-memory bridge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=__REPO_ROOT__
+ExecStart=__REPO_ROOT__/.venv/bin/python -m memory_engine.openclaw_bridge --config __REPO_ROOT__/config.yaml --once
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=default.target

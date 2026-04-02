@@ -1,0 +1,13 @@
+[Unit]
+Description=Clawbie memory repair job
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=__REPO_ROOT__
+ExecStart=__REPO_ROOT__/.venv/bin/python -m memory_engine.repair_job --config __REPO_ROOT__/config.yaml --log-dir __REPO_ROOT__/logs
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=default.target

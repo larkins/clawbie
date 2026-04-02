@@ -1,0 +1,9 @@
+psycopg[binary]==3.2.10
+python-dotenv==1.1.1
+PyYAML==6.0.2
+requests==2.32.3
+pytest==8.3.5
+
+# Optional: Required for minimax_tts_server.py
+# fastapi>=0.100.0
+# uvicorn>=0.23.0

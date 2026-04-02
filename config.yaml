@@ -1,0 +1,38 @@
+app:
+  host: 127.0.0.1
+  port: 5000
+
+memory:
+  reflection_prompt: summarise this in 20 lines or less
+  embedding_dimensions: 1024
+  ingestion_retry:
+    max_retries: 2
+    backoff_seconds: 0.2
+  retrieval:
+    default_top_k: 12
+    raw_candidate_k: 40
+    reflection_candidate_k: 40
+    reflection_weight: 0.55
+    raw_weight: 0.35
+    recency_weight: 0.10
+    importance_weight: 0.02
+    recency_half_life_days: 30
+
+openclaw_bridge:
+  # Glob patterns for OpenClaw session transcripts (set via OPENCLAW_TRANSCRIPT_GLOBS env var)
+  transcript_globs:
+    - ~/.openclaw/agents/main/sessions/*.jsonl
+  allowed_roles:
+    - user
+    - assistant
+  excluded_channels:
+    - analysis
+    - tool
+  source_marker: openclaw_transcript
+  source_type: chat
+  poll_interval_seconds: 60
+  state_path: .state/openclaw-bridge-state.json
+
+sub_agent_activity_tracker:
+  # Path to OpenClaw sessions index (set via OPENCLAW_SESSIONS_INDEX env var)
+  sessions_index: ~/.openclaw/agents/main/sessions/sessions.json

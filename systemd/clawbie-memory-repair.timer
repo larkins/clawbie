@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Clawbie memory repair job daily
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=15m
+Unit=clawbie-memory-repair.service
+
+[Install]
+WantedBy=timers.target

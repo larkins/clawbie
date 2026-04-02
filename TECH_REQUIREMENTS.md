@@ -1,0 +1,13 @@
+## General Requirements
+- Language/runtime: Python only.
+- Web/API (if needed): Flask app, served by Flask dev server for local development and Gunicorn for service mode.
+- Testing framework: `pytest`.
+- Bind address (If setting up an interface): never `0.0.0.0`; use `127.0.0.1` or a specific local interface IP from `ifconfig`.
+- Database: local PostgreSQL (set strong password in `.env`, e.g. `openssl rand -base64 14`).
+- Environment: use project `.venv`; install packages with `pip` into `.venv` (never system install).
+- Dependency lock discipline: maintain a tracked `requirements.txt`.
+- Secrets/machine-specific values: `.env` (untracked).
+- Tracked env template: `.env.example`.
+- Non-secret runtime/config settings: tracked `config.yaml`.
+- Service orchestration: `systemctl --user` for API service and daily timer jobs.
+- Engineering workflow: after writing/changing code, update or add tests as appropriate and ensure they pass via `pytest` before considering work complete.

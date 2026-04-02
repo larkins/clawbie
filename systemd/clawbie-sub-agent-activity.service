@@ -1,0 +1,12 @@
+[Unit]
+Description=Clawbie Codex sub-agent activity tracker
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=__REPO_ROOT__
+Environment=PYTHONUNBUFFERED=1
+ExecStart=__REPO_ROOT__/.venv/bin/python -m memory_engine.sub_agent_activity_tracker --config __REPO_ROOT__/config.yaml --once
+
+[Install]
+WantedBy=default.target
