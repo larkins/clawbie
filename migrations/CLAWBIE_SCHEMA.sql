@@ -258,3 +258,25 @@ CREATE INDEX idx_session_redirects_session ON session_redirects (session_id);
 CREATE INDEX idx_session_redirects_created ON session_redirects (created_at DESC);
 CREATE INDEX idx_session_redirects_from ON session_redirects (redirected_from);
 CREATE INDEX idx_session_redirects_to ON session_redirects (redirected_to);
+
+-- ============================================================
+-- core_memories
+-- Long-range strategic context — loaded at session start
+-- Unlike user_memories which are reactive, these are foundational
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS core_memories (
+    id              SERIAL PRIMARY KEY,
+    category        TEXT NOT NULL
+                        CHECK (category IN ('business', 'product', 'personality', 'architecture', 'values', 'relationships', 'goals')),
+    memory_text     TEXT NOT NULL,
+    embedding       VECTOR(1024),
+    source          TEXT DEFAULT 'conversation'
+                        CHECK (source IN ('conversation', 'explicit', 'inferred')),
+    active         BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at     TIMESTAMP DEFAULT NOW(),
+    updated_at     TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_core_memories_category ON core_memories (category);
+CREATE INDEX IF NOT EXISTS idx_core_memories_active ON core_memories (active);

@@ -176,3 +176,44 @@ Returns:
 - Recent redirects
 
 **Heartbeat usage:** Run `session-state` on every heartbeat. If there are overdue intentions or a stale project, nudge Mal.
+
+---
+
+## Core Memories — Long-Range Strategic Context
+
+These are loaded at the start of every session — not reactive, but proactive. Unlike `user_memories` which are day-to-day reactive notes, `core_memories` capture foundational context that informs how I work.
+
+Categories: `business`, `product`, `personality`, `architecture`, `values`, `relationships`, `goals`
+
+### Write a core memory
+
+```bash
+python skills/clawbie-memory/scripts/clawbie_memory.py core-write \
+  --category business \
+  --text "agieth.ai is the core business — domain registration and email hosting"
+```
+
+### Read core memories
+
+```bash
+# All core memories
+python skills/clawbie-memory/scripts/clawbie_memory.py core-read --limit 20
+
+# Filter by category
+python skills/clawbie-memory/scripts/clawbie_memory.py core-read --category business
+```
+
+### List categories and counts
+
+```bash
+python skills/clawbie-memory/scripts/clawbie_memory.py core-list
+```
+
+### Update or archive
+
+```bash
+python skills/clawbie-memory/scripts/clawbie_memory.py core-update --id 3 --text "Updated text"
+python skills/clawbie-memory/scripts/clawbie_memory.py core-archive --id 3
+```
+
+**When to write a core memory:** When Mal tells me something foundational, strategic, or enduring — not something that happened today, but something that shapes how I should think and work going forward.

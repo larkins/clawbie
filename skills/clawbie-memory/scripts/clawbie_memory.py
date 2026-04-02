@@ -449,6 +449,49 @@ def cmd_promise_scan(args: argparse.Namespace, env_path: Path) -> None:
     print_json(classify_rows(rows))
 
 
+def cmd_core_write(args: argparse.Namespace, env_path: Path) -> None:
+    text = args.text.replace("'", "''")
+    category = args.category.replace("'", "''")
+    run_sql_modify(
+        f"INSERT INTO public.core_memories (category, memory_text, source) "
+        f"VALUES ('{category}', '{text}', '{args.source or 'conversation'}');",
+        env_path
+    )
+    print_json({'ok': True, 'category': args.category, 'text': args.text})
+
+
+def cmd_core_read(args: argparse.Namespace, env_path: Path) -> None:
+    limit = int(args.limit)
+    category_clause = f"WHERE active = TRUE AND category = '{args.category.replace(chr(39), chr(39)+chr(39))}'" if args.category else "WHERE active = TRUE"
+    print_json(col_sql(
+        f"SELECT row_to_json(t) FROM ("
+        f"SELECT id, category, memory_text, source, created_at "
+        f"FROM public.core_memories {category_clause} "
+        f"ORDER BY created_at DESC LIMIT {limit}"
+        f") t;",
+        env_path
+    ))
+
+
+def cmd_core_update(args: argparse.Namespace, env_path: Path) -> None:
+    text = args.text.replace("'", "''")
+    run_sql_modify(
+        f"UPDATE public.core_memories SET memory_text = '{text}', "
+        f"updated_at = NOW() WHERE id = {args.id};",
+        env_path
+    )
+    print_json({'ok': True, 'id': args.id})
+
+
+def cmd_core_archive(args: argparse.Namespace, env_path: Path) -> None:
+    run_sql_modify(
+        f"UPDATE public.core_memories SET active = FALSE, updated_at = NOW() "
+        f"WHERE id = {args.id};",
+        env_path
+    )
+    print_json({'ok': True, 'id': args.id, 'active': False})
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description='Clawbie Memory Engine — memories, projects, and temporal awareness'
@@ -538,6 +581,41 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser('redirect-stats', help='Redirect pattern statistics')
     p.set_defaults(func=cmd_redirect_stats)
+
+    # Core memory commands
+    p = sub.add_parser('core-write', help='Write a new core memory')
+    p.add_argument('--text', required=True, help='Memory text')
+    p.add_argument('--category', required=True,
+                   choices=['business', 'product', 'personality', 'architecture', 'values', 'relationships', 'goals'],
+                   help='Category')
+    p.add_argument('--source', default='conversation',
+                   choices=['conversation', 'explicit', 'inferred'])
+    p.set_defaults(func=cmd_core_write)
+
+    p = sub.add_parser('core-read', help='Read core memories')
+    p.add_argument('--category',
+                   choices=['business', 'product', 'personality', 'architecture', 'values', 'relationships', 'goals'],
+                   help='Filter by category')
+    p.add_argument('--limit', type=int, default=20)
+    p.set_defaults(func=cmd_core_read)
+
+    p = sub.add_parser('core-list', help='List all core memory categories')
+    p.set_defaults(func=lambda a, e: print_json(col_sql(
+        "SELECT row_to_json(t) FROM ("
+        "SELECT category, COUNT(*) as count FROM public.core_memories "
+        "WHERE active = TRUE GROUP BY category ORDER BY count DESC"
+        ") t;",
+        e
+    )))
+
+    p = sub.add_parser('core-update', help='Update a core memory')
+    p.add_argument('--id', required=True, type=int)
+    p.add_argument('--text', required=True)
+    p.set_defaults(func=cmd_core_update)
+
+    p = sub.add_parser('core-archive', help='Archive a core memory (soft delete)')
+    p.add_argument('--id', required=True, type=int)
+    p.set_defaults(func=cmd_core_archive)
 
     # Heartbeat command
     p = sub.add_parser('session-state', help='Full state for heartbeat check')
