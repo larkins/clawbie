@@ -4,9 +4,10 @@ After=network.target
 
 [Service]
 Type=oneshot
-WorkingDirectory=__REPO_ROOT__
-ExecStart=__REPO_ROOT__/skills/nightly-reverie/scripts/run_reverie.sh
-SyslogIdentifier=clawbie-reverie
+WorkingDirectory=/home/mal/git/clawbie
+ExecStart=/home/mal/git/clawbie/skills/nightly-reverie/scripts/run_direct_reverie.sh
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=default.target

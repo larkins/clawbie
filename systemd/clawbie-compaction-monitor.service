@@ -1,0 +1,13 @@
+[Unit]
+Description=Clawbie Compaction Monitor - Trigger a proper turn when context exceeds 150k
+
+[Service]
+Type=oneshot
+User=mal
+WorkingDirectory=/home/mal/.openclaw/workspace
+ExecStart=/home/mal/git/clawbie/.venv/bin/python skills/clawbie-compaction/clawbie_compaction_hook.py --hook check
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
